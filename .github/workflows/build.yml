@@ -55,16 +55,26 @@ jobs:
           -p:SelfContained=true `
           -p:RuntimeIdentifier=win-x64
 
-    - name: Copy npnp.exe placeholder notice
+    - name: Copy npnp.exe to output tools folder
       run: |
-        "Please download npnp.exe from https://github.com/linkyourbin/npnp/releases and place it in the tools/ directory" | Out-File -FilePath ./publish/transform-app/tools/README.txt -Encoding utf8
+        if (-not (Test-Path ./publish/transform-app/tools)) { New-Item -ItemType Directory -Path ./publish/transform-app/tools | Out-Null }
+        Copy-Item -Path ./src/Transform.App/tools/npnp.exe -Destination ./publish/transform-app/tools/npnp.exe -Force
 
-    - name: Upload artifacts
+    - name: Create zip archives
+      run: |
+        Compress-Archive -Path ./publish/npnp-cli/* -DestinationPath ./npnp-cli-win-x64.zip
+        Compress-Archive -Path ./publish/transform-app/* -DestinationPath ./transform-app-win-x64.zip
+
+    - name: List release assets
+      run: |
+        Get-ChildItem *.zip | Select-Object Name, @{N='Size(MB)';E={[math]::Round($_.Length/1MB,2)}}
+
+    - name: Upload release assets
       uses: actions/upload-artifact@v4
       with:
-        name: transform-build-${{ github.run_number }}
+        name: release-zips
         path: |
-          ./publish/**
+          ./*.zip
         retention-days: 30
 
   release:
@@ -75,20 +85,20 @@ jobs:
       contents: write
 
     steps:
-    - name: Download artifacts
+    - name: Download release assets
       uses: actions/download-artifact@v4
       with:
-        name: transform-build-${{ github.run_number }}
+        name: release-zips
 
-    - name: Display structure
+    - name: Display downloaded files
       run: ls -la
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          npnp-cli/**
-          transform-app/**
+          npnp-cli-win-x64.zip
+          transform-app-win-x64.zip
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
