@@ -1,0 +1,83 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.rsuser
+*.suo
+*.user
+*.sln
+*.userosscache
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# NuGet
+*.nupkg
+*.snupkg
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Publish
+publish/
+
+# IDE
+.vs/
+.idea/
+*.swp
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Test results
+TestResults/
+*.trx
+
+# Package files
+*.zip
+*.msi
+*.exe
+
+# Logs
+*.log
+
+# Test output directories
+test_*/
+app_test_out/
+1/
+2/
+3/
+4/
+output/
+docs/
+
+# Diagnostic files
+analyze_altium.cs
+diagnose_writer.csx
+test_ids.txt
+
+# npnp.exe (large binary, users should download from official releases)
+src/Transform.App/tools/npnp.exe

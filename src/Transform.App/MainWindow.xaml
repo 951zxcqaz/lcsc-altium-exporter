@@ -1,0 +1,299 @@
+<Window x:Class="Transform.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:components="clr-namespace:Transform.App.Views.Components"
+        Title="Transform - 嘉立创元件库导出工具"
+        Height="900"
+        Width="1400"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F5F7"
+        MinHeight="600"
+        MinWidth="1000">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="56" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="180" />
+        </Grid.RowDefinitions>
+
+        <!-- 顶部标题栏 -->
+        <Grid Grid.Row="0" Background="#007ACC">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0,0,0">
+                <TextBlock Text="Transform" FontSize="22" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" />
+                <TextBlock Text=" - 嘉立创元件库导出工具" FontSize="14" Foreground="White" Opacity="0.85"
+                           VerticalAlignment="Center" Margin="4,0,0,0" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
+            </StackPanel>
+        </Grid>
+
+        <!-- 搜索栏 -->
+        <Grid Grid.Row="1" Margin="20,14,20,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <ComboBox x:Name="SearchFieldCombo" Width="130" Height="36" VerticalContentAlignment="Center"
+                          FontSize="13" Background="White" BorderBrush="#CCCCCC" BorderThickness="1">
+                    <ComboBoxItem Content="联合搜索" Tag="union" />
+                    <ComboBoxItem Content="全部字段" Tag="all" />
+                    <ComboBoxItem Content="编号" Tag="lcscId" />
+                    <ComboBoxItem Content="名称" Tag="name" />
+                    <ComboBoxItem Content="型号" Tag="manufacturerPart" />
+                    <ComboBoxItem Content="品牌" Tag="manufacturer" />
+                    <ComboBoxItem Content="封装" Tag="package" />
+                    <ComboBoxItem Content="渠道" Tag="supplier" />
+                    <ComboBoxItem Content="数值" Tag="value" />
+                    <ComboBoxItem Content="精度" Tag="tolerance" />
+                    <ComboBoxItem Content="功率" Tag="power" />
+                    <ComboBoxItem Content="电压" Tag="voltage" />
+                    <ComboBoxItem Content="规格" Tag="spec" />
+                    <ComboBoxItem Content="类别" Tag="category" />
+                    <ComboBoxItem Content="子类别" Tag="subCategory" />
+                    <ComboBoxItem Content="类型" Tag="componentType" />
+                    <ComboBoxItem Content="描述" Tag="description" />
+                </ComboBox>
+                <TextBox x:Name="SearchBox" Width="520" Height="88" VerticalContentAlignment="Top"
+                         Padding="10,6" FontSize="13"
+                         BorderBrush="#CCCCCC" BorderThickness="1" Background="White"
+                         AcceptsReturn="True" TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"
+                         ToolTip="搜索方式：单行→普通搜索 | 联合搜索格式：名称:xxx 型号:xxx&#x0a;按 Ctrl+Enter 或点击搜索按钮"
+                         Margin="8,0,0,0"
+                         KeyDown="SearchBox_KeyDown" />
+                <Button x:Name="SearchButton" Content="🔍 搜索" Click="SearchButton_Click"
+                        Height="36" Padding="20,0" Background="#007ACC" Foreground="White"
+                        FontSize="14" FontWeight="SemiBold" Margin="8,0,0,0"
+                        Cursor="Hand" BorderThickness="0" />
+                <CheckBox x:Name="ClipboardAutoReadBox" Content="剪贴板自动读取" Margin="20,0,0,0"
+                          VerticalAlignment="Center" FontSize="13"
+                          ToolTip="选中后，复制到剪贴板的内容会自动搜索并添加第一个结果到导出列表"
+                          Checked="ClipboardAutoReadBox_CheckedChanged"
+                          Unchecked="ClipboardAutoReadBox_CheckedChanged" />
+                <TextBlock x:Name="StatusMessage" Margin="20,0,0,0" VerticalAlignment="Center"
+                           FontSize="12" Foreground="#555" TextWrapping="Wrap" Width="200" />
+            </StackPanel>
+        </Grid>
+
+        <!-- 主内容区：搜索结果 + 元件列表 + 导出设置 -->
+        <Grid Grid.Row="2" Margin="20,4,20,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="560" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="520" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧：搜索结果 + 元件列表 -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" MaxHeight="300" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- 搜索结果标题 -->
+                <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4"
+                        Padding="10,8,10,8">
+                    <Grid>
+                        <TextBlock Text="搜索结果" FontSize="14" FontWeight="SemiBold" Foreground="#222"
+                                   VerticalAlignment="Center" HorizontalAlignment="Left" />
+                        <TextBlock x:Name="SearchResultCount" Text="(0 个元件)" FontSize="12" Foreground="#888"
+                                   VerticalAlignment="Center" HorizontalAlignment="Center" />
+                        <Button x:Name="AddToExportButton" Content="➕ 添加到导出"
+                                Click="AddToExportButton_Click"
+                                HorizontalAlignment="Right" Padding="12,3"
+                                Background="#F0F0F0" Foreground="#333" BorderBrush="#CCC"
+                                BorderThickness="1" FontSize="12" Cursor="Hand" />
+                    </Grid>
+                </Border>
+
+                <!-- 搜索结果列表 -->
+                <ListView x:Name="SearchResultsList" Grid.Row="1"
+                          Background="White" BorderBrush="#E0E0E0" BorderThickness="1"
+                          Margin="0,6,0,0" FontSize="13"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                          MouseDoubleClick="SearchResultsList_MouseDoubleClick">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="编号" DisplayMemberBinding="{Binding LcscId}" Width="90" />
+                            <GridViewColumn Header="名称" DisplayMemberBinding="{Binding Name}" Width="150" />
+                            <GridViewColumn Header="型号" DisplayMemberBinding="{Binding ManufacturerPart}" Width="130" />
+                            <GridViewColumn Header="品牌" DisplayMemberBinding="{Binding Manufacturer}" Width="110" />
+                            <GridViewColumn Header="封装" DisplayMemberBinding="{Binding Package}" Width="90" />
+                            <GridViewColumn Header="渠道" DisplayMemberBinding="{Binding Supplier}" Width="70" />
+                            <GridViewColumn Header="数值" DisplayMemberBinding="{Binding Value}" Width="70" />
+                            <GridViewColumn Header="精度" DisplayMemberBinding="{Binding Tolerance}" Width="60" />
+                            <GridViewColumn Header="功率" DisplayMemberBinding="{Binding Power}" Width="60" />
+                            <GridViewColumn Header="电压" DisplayMemberBinding="{Binding Voltage}" Width="60" />
+                            <GridViewColumn Header="规格" DisplayMemberBinding="{Binding SpecSummary}" Width="150" />
+                            <GridViewColumn Header="类别" DisplayMemberBinding="{Binding Category}" Width="70" />
+                            <GridViewColumn Header="描述" DisplayMemberBinding="{Binding Description}" Width="180" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+
+                <!-- 元件列表标题 -->
+                <Border Grid.Row="2" Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4"
+                        Padding="10,8,10,8" Margin="0,14,0,0">
+                    <Grid>
+                        <TextBlock Text="待导出元件" FontSize="14" FontWeight="SemiBold" Foreground="#222"
+                                   VerticalAlignment="Center" HorizontalAlignment="Left" />
+                        <TextBlock x:Name="ComponentCount" Text="(0 个)" FontSize="12" Foreground="#888"
+                                   VerticalAlignment="Center" HorizontalAlignment="Right" />
+                    </Grid>
+                </Border>
+
+                <!-- 待导出元件列表（使用内置控件） -->
+                <Grid Grid.Row="3" Margin="0,6,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <ListView x:Name="ComponentsList"
+                              Background="White" BorderBrush="#E0E0E0" BorderThickness="1"
+                              FontSize="13"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="编号" DisplayMemberBinding="{Binding LcscId}" Width="90" />
+                                <GridViewColumn Header="名称" DisplayMemberBinding="{Binding Name}" Width="150" />
+                                <GridViewColumn Header="型号" DisplayMemberBinding="{Binding ManufacturerPart}" Width="130" />
+                                <GridViewColumn Header="品牌" DisplayMemberBinding="{Binding Manufacturer}" Width="110" />
+                                <GridViewColumn Header="封装" DisplayMemberBinding="{Binding Package}" Width="90" />
+                                <GridViewColumn Header="渠道" DisplayMemberBinding="{Binding Supplier}" Width="70" />
+                                <GridViewColumn Header="规格" DisplayMemberBinding="{Binding SpecSummary}" Width="150" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
+                        <Button x:Name="RemoveSelectedButton" Content="🗑 移除选中"
+                                Click="RemoveSelectedButton_Click"
+                                Padding="12,3" Background="#FFF2F2" Foreground="#CC3333"
+                                BorderBrush="#CCCCCC" BorderThickness="1" FontSize="12"
+                                Cursor="Hand" />
+                        <Button x:Name="ClearAllButton" Content="清空列表"
+                                Click="ClearAllButton_Click"
+                                Padding="12,3" Background="#FFF2F2" Foreground="#CC3333"
+                                BorderBrush="#CCCCCC" BorderThickness="1" FontSize="12"
+                                Cursor="Hand" Margin="8,0,0,0" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="Transparent"
+                          ResizeBehavior="PreviousAndNext" />
+
+            <!-- 右侧：导出设置 + 选中元件详情 -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- 导出设置（使用内置控件） -->
+                <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4"
+                        Padding="12" Margin="0,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="导出设置" FontSize="16" FontWeight="Bold" Margin="0,0,0,8" />
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="导出类型:" VerticalAlignment="Center" />
+                            <ComboBox x:Name="ExportTypeCombo" Grid.Column="1" Height="28">
+                                <ComboBoxItem Content="Altium Designer" Tag="altium" IsSelected="True" />
+                                <ComboBoxItem Content="KiCad" Tag="kicad" />
+                                <ComboBoxItem Content="Eagle" Tag="eagle" />
+                                <ComboBoxItem Content="OrCAD" Tag="orcad" />
+                            </ComboBox>
+                        </Grid>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="输出目录:" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <TextBox x:Name="OutputDirectoryBox" Width="240" Height="28" VerticalContentAlignment="Center" />
+                                <Button x:Name="BrowseButton" Content="浏览..." Click="BrowseButton_Click"
+                                        Height="28" Padding="10,0" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel Margin="0,8,0,0">
+                            <CheckBox x:Name="EmbedStepModelBox" Content="嵌入 STEP 模型（3D效果）" IsChecked="True" />
+                            <CheckBox x:Name="MergeOutputBox" Content="合并输出（合并为单个文件，自定义库名称）" Margin="0,4,0,0" />
+                            <CheckBox x:Name="AppendModeBox" Content="追加模式（向已有库追加，需要配合合并输出）" Margin="0,4,0,0" />
+                        </StackPanel>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="库名称:" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <TextBox x:Name="LibraryNameBox" Text="LcscLibrary"
+                                         Height="28" VerticalContentAlignment="Center" Width="240" />
+                                <TextBlock Text="（仅在合并输出时生效）" Foreground="Gray" VerticalAlignment="Center" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Grid>
+                        <Button x:Name="ExportButton" Content="📥 立即导出"
+                                Click="ExportButton_Click"
+                                Height="40" Background="#22C55E" Foreground="White"
+                                FontSize="14" FontWeight="SemiBold" Cursor="Hand"
+                                BorderThickness="0" Margin="0,12,0,0" />
+                        <TextBlock x:Name="ExportHintText" Text="在搜索结果中选择元件并添加到导出列表，然后点击导出按钮。"
+                                   FontSize="11" Foreground="#888" Margin="0,6,0,0"
+                                   TextWrapping="Wrap" TextAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 选中元件详情 -->
+                <Border Grid.Row="1" Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4"
+                        Padding="12" Margin="0,14,0,0">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel>
+                            <TextBlock Text="选中元件详情" FontSize="14" FontWeight="SemiBold" Foreground="#222"
+                                       Margin="0,0,0,8" />
+                            <TextBlock x:Name="ComponentDetailText" Text="在上方搜索结果中选择一个元件查看详情..."
+                                       FontSize="12" Foreground="#888" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- 状态信息 -->
+        <Grid Grid.Row="3" Margin="20,8,20,4">
+            <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4" Padding="12,6">
+                <TextBlock x:Name="BottomStatusText" Text="就绪"
+                           HorizontalAlignment="Left" FontSize="13" Foreground="#333333"
+                           TextWrapping="Wrap" />
+            </Border>
+        </Grid>
+
+        <!-- 底部进度 -->
+        <Border Grid.Row="4" Margin="20,8,20,16" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4"
+                Background="White">
+            <Grid Margin="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="导出进度" FontSize="16" FontWeight="Bold" Margin="0,0,0,8" />
+                <ProgressBar x:Name="ExportProgressBar" Grid.Row="1" Height="24" Value="0" Minimum="0" Maximum="100" />
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                    <TextBlock Text="已完成: " />
+                    <TextBlock x:Name="CompletedCountText" Text="0" FontWeight="Bold" />
+                    <TextBlock Text="  失败: " Margin="16,0,0,0" />
+                    <TextBlock x:Name="FailedCountText" Text="0" FontWeight="Bold" />
+                    <TextBlock Text="  总计: " Margin="16,0,0,0" />
+                    <TextBlock x:Name="TotalCountText" Text="0" FontWeight="Bold" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
