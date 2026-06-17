@@ -71,6 +71,8 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
 
     steps:
     - name: Download artifacts
@@ -78,12 +80,15 @@ jobs:
       with:
         name: transform-build-${{ github.run_number }}
 
+    - name: Display structure
+      run: ls -la
+
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
-          ./npnp-cli/**
-          ./transform-app/**
+          npnp-cli/**
+          transform-app/**
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
