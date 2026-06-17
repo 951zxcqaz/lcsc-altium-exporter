@@ -61,6 +61,9 @@ TestResults/
 *.msi
 *.exe
 
+# But include npnp.exe (required tool)
+!src/Transform.App/tools/npnp.exe
+
 # Logs
 *.log
 
@@ -78,6 +81,3 @@ docs/
 analyze_altium.cs
 diagnose_writer.csx
 test_ids.txt
-
-# npnp.exe (large binary, users should download from official releases)
-src/Transform.App/tools/npnp.exe
