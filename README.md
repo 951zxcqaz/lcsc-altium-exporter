@@ -1,115 +1,193 @@
 # Transform - 嘉立创元件库导出工具
 
-基于 [npnp](https://github.com/linkyourbin/npnp) 引擎的 LCSC/嘉立创电子元器件搜索与 Altium 库导出工具，提供图形界面（GUI）和命令行（CLI）两种使用方式。
+基于 [npnp](https://github.com/linkyourbin/npnp) 引擎的 LCSC/嘉立创电子元器件搜索与 Altium Designer 库导出工具。
 
-## ✨ 功能特性
+提供 **图形界面** 和 **命令行** 两种使用方式，**推荐大多数用户使用图形界面版本**。
 
-### 🖥️ 图形界面（Transform.App）
+## 📥 下载与运行（用户必读）
 
-- **智能搜索**：支持 LCSC 编号、型号、品牌、封装等 15+ 字段联合搜索
-- **剪贴板自动读取**：选中后自动读取剪贴板内容，搜索并添加第一个结果到导出列表
-- **批量导出**：一键生成 Altium Designer 格式的原理图库（.SchLib）和 PCB 封装库（.PcbLib）
-- **合并输出**：将多个元件合并为单个库文件，支持自定义库名称
-- **追加模式**：向已有的合并库追加新元件
-- **STEP 3D 模型**：可选嵌入 3D STEP 模型到 PCB 封装
-- **实时进度**：导出过程中显示实时进度条与状态信息
+### 第一步：下载
 
-### 💻 命令行（npnp CLI）
+前往 [Releases 页面](https://github.com/951zxcqaz/lcsc-altium-exporter/releases/latest) 下载：
 
-- `search` - 按关键词搜索 LCSC 元器件
-- `download` - 下载 3D 模型（STEP / OBJ）
-- `export` - 导出单个元件的 Altium 库
-- `batch` - 从文件批量导出元件库
+| 文件 | 大小 | 适用人群 | 说明 |
+|------|------|---------|------|
+| **`transform-app-win-x64.zip`** | ~100 MB | ⭐ **推荐：大多数用户** | 图形界面版本，所见即所得，鼠标点点即可 |
+| `npnp-cli-win-x64.zip` | ~62 MB | 高级用户 / 自动化 | 命令行版本，适合脚本批处理 |
 
-### 🔧 核心库（Npnp.Core）
+> 💡 **两个 x64 zip 任选一个即可独立使用**，无需同时下载。**推荐下载图形界面版 `transform-app-win-x64.zip`**。
 
-可作为类库集成到你的 .NET 项目中：
+### 第二步：解压
 
-- `ILcscApiService` - LCSC 搜索与元件详情 API
-- `INpnpCliService` - npnp.exe 调用封装
-- `IExportService` - 元件数据导出服务
-
-## 🚀 快速开始
-
-### 环境要求
-
-- Windows 10/11（WPF 图形界面仅支持 Windows）
-- .NET 8.0 SDK 或更高版本（从源码构建时需要）
-- `tools/npnp.exe`（官方 Rust 版，从 [npnp Releases](https://github.com/linkyourbin/npnp/releases) 下载并放置到 `tools/` 目录）
-
-### 方式一：下载 Release 版本
-
-直接从 [GitHub Releases](https://github.com/your-org/transform/releases) 下载最新的自包含版本，无需安装 .NET。
-
-### 方式二：从源码构建
-
-```bash
-# 克隆仓库
-git clone https://github.com/your-org/transform.git
-cd transform
-
-# 构建图形界面
-dotnet build src/Transform.App/Transform.App.csproj --configuration Release
-
-# 构建命令行工具
-dotnet build src/Npnp.CLI/Npnp.CLI.csproj --configuration Release
-```
-
-### 放置 npnp.exe
-
-将从 [npnp Releases](https://github.com/linkyourbin/npnp/releases) 下载的 `npnp.exe` 放置到：
+将下载的 zip 完整解压到任意目录（**不要在压缩包内直接运行**），例如：
 
 ```
-Transform 输出目录/
-└── tools/
-    └── npnp.exe      ← 放置在此
+D:\Transform\
+├── Transform.App.exe        ← 双击启动（图形界面）
+├── npnp.exe                 ← 命令行入口（CLI 版解压后才有）
+├── tools\
+│   └── npnp.exe             ← 关键依赖：导出引擎
+└── (其他 dll 文件)
 ```
 
-## 📖 使用指南
+> ⚠️ **重要**：`tools\npnp.exe` 必须保留，删除会导致导出失败。
 
-### 图形界面使用
+### 第三步：运行
 
-1. **搜索元件**：在顶部搜索框输入关键词（如 `STM32F030C8T6`、`C12702`），选择搜索字段后点击"🔍 搜索"
-2. **添加到导出列表**：双击搜索结果或选中后点击"➕ 添加到导出"
-3. **配置导出选项**：
-   - 勾选"嵌入 STEP 模型"以包含 3D 模型
-   - 勾选"合并输出"将所有元件合并为单个库文件，并可自定义库名称
-   - 勾选"追加模式"（需配合合并输出）以向现有库追加元件
-4. **点击"📥 立即导出"**：在指定的输出目录下生成 `schlib/` 和 `pcblib/` 文件夹
+**图形界面版**：
+- 双击 `Transform.App.exe` 即可打开主界面
 
-### 剪贴板自动读取
+**命令行版**（在解压目录打开 PowerShell）：
+```powershell
+.\npnp.exe --help
+```
 
-勾选"剪贴板自动读取"后：
-- 程序每 400ms 检查一次剪贴板内容
-- 检测到新内容时自动执行搜索
-- 将搜索结果的第一个元件自动添加到导出列表
-- 适用于批量复制 LCSC 编号的场景
+**系统要求**：
+- Windows 10 / 11（64 位）
+- 无需安装 .NET（自包含版本已包含运行时）
+- 需要联网（用于访问 LCSC 搜索 API）
 
-### 命令行使用
+---
+
+## 📖 图形界面使用教程（推荐）
+
+界面分为四个区域：**搜索区 → 结果区 → 导出列表区 → 导出设置区**。
+
+### 🎯 场景一：搜索并导出单个元件
+
+**1. 搜索元件**
+
+在搜索框输入关键词（两种方式任选）：
+
+- **按 LCSC 编号**：输入 `C12702`（这是立创商城的标准编号，最准确）
+- **按型号**：输入 `STM32F030C8T6` 或 `STM32F030`
+
+> 💡 **搜索技巧**：
+> - 搜索框下方可选择搜索字段（联合搜索、型号、品牌、封装等）
+> - 选"联合搜索"会同时匹配多个字段，最常用
+> - LCSC 编号搜索最精确，型号搜索最灵活
+
+点击 **🔍 搜索** 按钮，结果会显示在下方的"搜索结果"列表。
+
+**2. 选择并添加元件**
+
+在搜索结果列表中：
+- **查看详情**：每一行显示 LCSC 编号、型号、品牌、封装等
+- **添加方式**：双击行，或选中后点击 **➕ 添加到导出列表**
+
+添加后，元件会出现在"待导出列表"中。
+
+**3. 配置导出选项（可选）**
+
+在底部"导出设置"区域：
+
+| 选项 | 作用 | 推荐 |
+|------|------|------|
+| **输出目录** | 生成的库文件保存位置 | 默认 `桌面\LcscExport` |
+| **嵌入 STEP 模型** | 把 3D 模型嵌入 PCB 封装 | ✅ 推荐勾选 |
+| **合并输出** | 把所有元件合并到 1 个库文件 | 按需勾选 |
+| **库名称** | 合并后库文件的名字（仅合并时生效） | 例：`MyProject_Lib` |
+| **追加模式** | 向已存在的合并库追加新元件（需配合合并输出） | 按需勾选 |
+
+> 💡 **合并输出 vs 单独输出**：
+> - 单独输出：每个元件一个 `.SchLib` 和 `.PcbLib`
+> - 合并输出：所有元件放入同一个 `.SchLib` 和 `.PcbLib`，便于集中管理
+
+**4. 执行导出**
+
+点击 **📥 立即导出** 按钮：
+- 进度条会显示当前状态
+- 导出完成后，会自动在资源管理器打开输出目录
+- 文件结构：
+  ```
+  LcscExport/
+  ├── schlib/
+  │   └── *.SchLib     ← 原理图符号库
+  └── pcblib/
+      └── *.PcbLib     ← PCB 封装库
+  ```
+
+**5. 在 Altium Designer 中使用**
+
+1. 打开 AD 软件
+2. 菜单栏：**Design → Make Schematic Library**（生成 .SchLib）/ **Make PCB Library**（生成 .PcbLib）
+3. 或直接将生成的库文件拖到 AD 库面板
+
+---
+
+### 🎯 场景二：批量导出多个元件
+
+**方法 1：多次搜索 + 手动添加**
+1. 第一次搜索 `STM32F030`，添加搜索结果第一个
+2. 第二次搜索 `AMS1117`，添加第一个
+3. 第三次搜索 `C12702`，添加第一个
+4. 点击"立即导出"
+
+**方法 2：剪贴板自动读取（推荐）** ⭐
+
+1. 勾选 **"剪贴板自动读取"** 复选框
+2. 接下来复制任何 LCSC 编号或型号（Ctrl+C）
+3. 程序会**每 400ms 自动检测剪贴板**
+4. 检测到新内容后：
+   - 自动搜索
+   - 自动添加**第一个**结果到导出列表
+5. 全部复制完成后，**取消勾选**自动读取，点击"立即导出"
+
+> 💡 适用场景：从立创商城、Excel、PDF 中批量复制 LCSC 编号时，效率极高。
+
+---
+
+### ❓ 常见问题
+
+**Q: 双击 exe 没反应？**
+A: 打开 PowerShell，进入解压目录，执行 `.\Transform.App.exe`，查看错误信息（可能是杀毒软件拦截）。
+
+**Q: 搜索无结果？**
+A:
+- 确认网络畅通（搜索需要访问 LCSC API）
+- 关键词不要加前缀（如不要写 `型号:STM32`）
+- 尝试更短的关键词（如 `STM32F030` 而非 `STM32F030C8T6TR`）
+
+**Q: 导出失败？**
+A:
+- 检查 `tools\npnp.exe` 文件是否存在
+- 检查输出目录是否有写入权限
+- 查看导出日志中的具体错误
+
+**Q: 杀毒软件报警？**
+A: 自包含 .NET 应用体积较大，可能被误报。点击"信任"或添加白名单即可。
+
+**Q: 库文件是空白的？**
+A: 这是 npnp 引擎的旧问题，请升级到最新版（本项目已使用 npnp 官方工具）。
+
+---
+
+## 💻 命令行使用（高级用户）
+
+> 适合自动化脚本、CI/CD、服务器批量处理等场景。
 
 ```bash
 # 搜索元件
 npnp search STM32 --limit 20
 
-# 下载 3D 模型
-npnp download C12702 --format step
-
-# 导出单个元件库
+# 导出单个元件
 npnp export C12702 --step
 
-# 批量导出
-npnp batch --input components.txt --output ./output --merge --library-name MyLibrary
+# 批量导出（components.txt 每行一个 LCSC 编号）
+npnp batch --input components.txt --output ./output
+
+# 批量导出 + 合并为单个库
+npnp batch --input components.txt --output ./output --merge --library-name MyLib
+
+# 向已存在库追加
+npnp batch --input new_parts.txt --output ./output --merge --library-name MyLib --append
 ```
 
-components.txt 文件格式（每行一个 LCSC 编号）：
+参数详解请运行 `npnp --help` 或 `npnp batch --help`。
 
-```
-C12702
-C529330
-C2040
-```
+---
 
-## 🏗️ 项目结构
+## 🏗️ 项目结构（技术）
 
 ```
 src/
@@ -118,7 +196,7 @@ src/
 └── Transform.App/      # WPF 图形界面应用（MVVM 架构）
 ```
 
-## 🛠️ 技术栈
+## 🛠️ 技术栈（技术）
 
 - **框架**：.NET 8.0 + WPF
 - **架构**：MVVM（CommunityToolkit.Mvvm）
@@ -126,6 +204,20 @@ src/
 - **命令行**：Spectre.Console.Cli
 - **日志**：Serilog
 - **外部工具**：[npnp](https://github.com/linkyourbin/npnp)（Rust 实现的 LCSC 元件库导出器）
+
+### 从源码构建
+
+```bash
+# 克隆仓库
+git clone https://github.com/951zxcqaz/lcsc-altium-exporter.git
+cd lcsc-altium-exporter
+
+# 构建图形界面
+dotnet build src/Transform.App/Transform.App.csproj --configuration Release
+
+# 构建命令行工具
+dotnet build src/Npnp.CLI/Npnp.CLI.csproj --configuration Release
+```
 
 ## 📝 说明
 
